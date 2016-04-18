@@ -58,7 +58,12 @@ def server(port):
         for i in range(2):
             t=random.randint(0,255)
             offerAddr+=struct.pack('!B',t)
-        data=data[0:240]
+        payload=b'\x02'+data[1:16]
+        payload+=offerAddr
+        payload+=data[20:240]
+        payload+=b'\x35\x01\x02'
+        payload+=b'\xff'
+        dsocket.sendto(payload,('<broadcast>',68))
 
 def client(port):
     print("Client")
@@ -76,6 +81,10 @@ def client(port):
     discoverPackage=DHCPDiscover()
     dsocket.sendto(discoverPackage.build() , ('<broadcast>', 67))
     print('DHCP Discover has sent. Wating for reply...\n')
+    while True:
+        data, address = dsocket.recvfrom(MAX_BYTES)
+        print("Receive offer package {} byte".format(len(data)))
+        break
 
 if  __name__ == '__main__':
     choice={'client':client , 'server':server}
