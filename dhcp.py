@@ -83,7 +83,7 @@ def server(port):
         #Find Request Package
         if(data[240:].find(b'\x35\x01\x03')!=-1):
             selfIP=IPInByte(socket.gethostbyname(socket.gethostname()))
-            pat=b'\x36\x04'+selfIP #Pattern of request identify
+            pat=b'\x36\x04'+selfIP              # request identify
             if(data[240:].find(pat)!=-1):
                 if(data[240:].find(b'\x32\x04')!=-1):
                     find=data[240:].find(b'\x32\x04')
