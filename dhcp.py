@@ -45,7 +45,13 @@ class DHCPDiscover:
         packet += b'\x3d\x06'+macb        # Option61: Client identifier (MAC addr)
         packet += b'\x37\x03\x03\x01\x06' # Option55: length 3 , Parameter Request List
         packet += b'\xff'
-        return packet
+        return packet,self.transID
+def IPInByte(ip):
+    ips=ip.split('.')
+    byte=b''
+    for i in range(4):
+        byte+=struct.pack('!B',int(ips[i]))
+    return byte
 
 def server(port):
     dsocket=socket.socket(socket.AF_INET , socket.SOCK_DGRAM)
@@ -64,6 +70,7 @@ def server(port):
         payload+=b'\x35\x01\x02'
         payload+=b'\xff'
         dsocket.sendto(payload,('<broadcast>',68))
+        break
 
 def client(port):
     print("Client")
@@ -71,7 +78,7 @@ def client(port):
     dsocket.setsockopt(socket.SOL_SOCKET , socket.SO_BROADCAST, 1)
 
     try:
-        dsocket.bind(('' , port))
+        dsocket.bind(('' , 68))
     except Exception as e:
         print('port {} in used'.format(port))
         dsocket.close()
@@ -79,12 +86,20 @@ def client(port):
         exit()
 
     discoverPackage=DHCPDiscover()
-    dsocket.sendto(discoverPackage.build() , ('<broadcast>', 67))
+    Discoverdata , transID = discoverPackage.build()
+    dsocket.sendto( Discoverdata , ('<broadcast>', 67))
     print('DHCP Discover has sent. Wating for reply...\n')
     while True:
         data, address = dsocket.recvfrom(MAX_BYTES)
-        print("Receive offer package {} byte".format(len(data)))
-        break
+        if transID==data[4:8]:
+            data=b''
+            data=Discoverdata[:240]
+            data+=b'\x35\x01\x03'                  # Option53: length1 , type 3 DHCP Request 
+            data+=b'\x32\x04'+data[16:20]          # Option 50: length 4 , request IP
+            data+=b'\x36\x04'+IPInByte(address[0]) # Option 54: length 4 , identifier
+            data+=b'\xff'
+            dsocket.sendto(data, ('<broadcast>', 67))
+            break;
 
 if  __name__ == '__main__':
     choice={'client':client , 'server':server}
