@@ -1,5 +1,9 @@
 #!usr/bin/env python3
-import argparse , socket , struct , random , uuid
+import argparse
+import socket
+import struct
+import random
+import uuid
 
 MAX_BYTES=65535
 
@@ -46,6 +50,7 @@ class DHCPDiscover:
         packet += b'\x37\x03\x03\x01\x06' # Option55: length 3 , Parameter Request List
         packet += b'\xff'
         return packet,self.transID
+
 def IPInByte(ip):
     ips=ip.split('.')
     byte=b''
@@ -60,17 +65,39 @@ def server(port):
     print('Listening at {}'.format(dsocket.getsockname()))
     while True:
         data , address = dsocket.recvfrom(MAX_BYTES)
-        offerAddr=b'\xc0\xa8'
-        for i in range(2):
-            t=random.randint(0,255)
-            offerAddr+=struct.pack('!B',t)
-        payload=b'\x02'+data[1:16]
-        payload+=offerAddr
-        payload+=data[20:240]
-        payload+=b'\x35\x01\x02'
-        payload+=b'\xff'
-        dsocket.sendto(payload,('<broadcast>',68))
-        break
+
+        #Find Discover Package
+        if(data[240:].find(b'\x35\x01\x01')!=-1):
+            offerAddr=b'\xc0\xa8'
+            for i in range(2):
+                t=random.randint(0,255)
+                offerAddr+=struct.pack('!B',t)
+            payload=b'\x02'+data[1:16]
+            payload+=offerAddr
+            payload+=data[20:240]
+            payload+=b'\x35\x01\x02'
+            payload+=b'\xff'
+            dsocket.sendto(payload,('<broadcast>',68))
+            print("Send Offer")
+
+        #Find Request Package
+        if(data[240:].find(b'\x35\x01\x03')!=-1):
+            selfIP=IPInByte(socket.gethostbyname(socket.gethostname()))
+            pat=b'\x36\x04'+selfIP #Pattern of request identify
+            if(data[240:].find(pat)!=-1):
+                if(data[240:].find(b'\x32\x04')!=-1):
+                    find=data[240:].find(b'\x32\x04')
+                    requestIP=data[240:][find+2:find+6]
+                    payload=b'\x02'+data[1:16]
+                    payload+=requestIP
+                    payload+=data[20:240]
+                    payload+=b'\x35\x01\x05'
+                    payload+=b'\xff'
+                    dsocket.sendto(payload,('<broadcast>',68))
+                    print("Send ACK")
+            else:
+                continue
+
 
 def client(port):
     print("Client")
@@ -99,7 +126,8 @@ def client(port):
             data+=b'\x36\x04'+IPInByte(address[0]) # Option 54: length 4 , identifier
             data+=b'\xff'
             dsocket.sendto(data, ('<broadcast>', 67))
-            break;
+            data, address = dsocket.recvfrom(MAX_BYTES)
+            break
 
 if  __name__ == '__main__':
     choice={'client':client , 'server':server}
