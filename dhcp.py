@@ -58,7 +58,7 @@ def IPInByte(ip):
         byte+=struct.pack('!B',int(ips[i]))
     return byte
 
-def server(port):
+def server():
     dsocket=socket.socket(socket.AF_INET , socket.SOCK_DGRAM)
     dsocket.setsockopt(socket.SOL_SOCKET , socket.SO_BROADCAST, 1)
     dsocket.bind(('',67))
@@ -97,7 +97,7 @@ def server(port):
                 continue
 
 
-def client(port):
+def client():
     dsocket=socket.socket(socket.AF_INET , socket.SOCK_DGRAM)
     dsocket.setsockopt(socket.SOL_SOCKET , socket.SO_BROADCAST, 1)
 
@@ -139,7 +139,6 @@ if  __name__ == '__main__':
     choice={'client':client , 'server':server}
     parser = argparse.ArgumentParser(description='DHCP Implement')
     parser.add_argument('role', choices = choice , help='which role to play')
-    parser.add_argument('-p' , metavar='PORT' , type=int , default=68 , help='DHCP default port')
     args=parser.parse_args()
     function=choice[args.role]
-    function(args.p)
+    function()
