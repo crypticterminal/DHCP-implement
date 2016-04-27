@@ -78,7 +78,6 @@ def server(port):
             payload+=b'\x35\x01\x02'
             payload+=b'\xff'
             dsocket.sendto(payload,('<broadcast>',68))
-            print("Send Offer")
 
         #Find Request Package
         if(data[240:].find(b'\x35\x01\x03')!=-1):
@@ -94,18 +93,16 @@ def server(port):
                     payload+=b'\x35\x01\x05'
                     payload+=b'\xff'
                     dsocket.sendto(payload,('<broadcast>',68))
-                    print("Send ACK")
             else:
                 continue
 
 
 def client(port):
-    print("Client")
     dsocket=socket.socket(socket.AF_INET , socket.SOCK_DGRAM)
     dsocket.setsockopt(socket.SOL_SOCKET , socket.SO_BROADCAST, 1)
 
     try:
-        dsocket.bind(('' , 68))
+        dsocket.bind(('', 68 ))
     except Exception as e:
         print('port {} in used'.format(port))
         dsocket.close()
@@ -118,16 +115,25 @@ def client(port):
     print('DHCP Discover has sent. Wating for reply...\n')
     while True:
         data, address = dsocket.recvfrom(MAX_BYTES)
+        serverIP=address[0]
         if transID==data[4:8]:
+            requestIP=data[16:20]
             data=b''
             data=Discoverdata[:240]
             data+=b'\x35\x01\x03'                  # Option53: length1 , type 3 DHCP Request 
-            data+=b'\x32\x04'+data[16:20]          # Option 50: length 4 , request IP
+            data+=b'\x32\x04'+requestIP          # Option 50: length 4 , request IP
             data+=b'\x36\x04'+IPInByte(address[0]) # Option 54: length 4 , identifier
             data+=b'\xff'
             dsocket.sendto(data, ('<broadcast>', 67))
-            data, address = dsocket.recvfrom(MAX_BYTES)
             break
+
+    while True:
+        data, address = dsocket.recvfrom(MAX_BYTES)
+        if transID==data[4:8] and data.find(b'\x35\x01\x05') and serverIP==address[0]:
+            RequestIP= '.'.join(map(lambda x: str(x),data[16:20]))
+            print("Request IP: {}".format(RequestIP))
+            break
+            
 
 if  __name__ == '__main__':
     choice={'client':client , 'server':server}
