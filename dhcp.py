@@ -132,6 +132,7 @@ def client():
         if transID==data[4:8] and data.find(b'\x35\x01\x05') and serverIP==address[0]:
             RequestIP= '.'.join(map(lambda x: str(x),data[16:20]))
             print("Request IP: {}".format(RequestIP))
+            dsocket.close()
             break
             
 
