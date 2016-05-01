@@ -3,4 +3,5 @@ python:
         - "3.5"
 
 # command to install depend
-script: nosetests
+script:
+        - python3 dhcp.py 
