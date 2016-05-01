@@ -137,6 +137,7 @@ def client():
             
 
 if  __name__ == '__main__':
+    print(f)
     choice={'client':client , 'server':server}
     parser = argparse.ArgumentParser(description='DHCP Implement')
     parser.add_argument('role', choices = choice , help='which role to play')
