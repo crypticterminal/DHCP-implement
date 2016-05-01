@@ -4,4 +4,5 @@ python:
 
 # command to install depend
 script:
-        - python3 dhcp.py 
+        - python3 dhcp.py server
+        - python3 dhcp.py client
