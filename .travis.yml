@@ -3,6 +3,4 @@ python:
         - "3.5"
 
 # command to install depend
-script:
-        - sudo python3 dhcp.py client
-        - sudo python3 dhcp.py server
+script: nosetests
