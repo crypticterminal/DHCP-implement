@@ -5,6 +5,8 @@ import struct
 import random
 import uuid
 
+import re
+
 MAX_BYTES=65535
 
 def getMacInByte():
