@@ -5,4 +5,4 @@
 It will listen to port 67. And waiting for discover.
 
 * Client: ```python3 dhcp.py client```  
-It will send discover package and waiting for offer at port 68(default).
+It will send discover package and waiting for offer at port 68.
