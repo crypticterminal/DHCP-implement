@@ -5,7 +5,7 @@ import struct
 import random
 import uuid
 
-MAX_BYTES=65535
+MAX_BYTES=65536
 
 def getMacInByte():
     mac=str(hex(uuid.getnode()))
